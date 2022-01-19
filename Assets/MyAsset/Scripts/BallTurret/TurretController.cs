@@ -18,10 +18,19 @@ public class TurretController : MonoBehaviour
     public AudioSource m_ShootingAudio;
     public AudioClip m_FireClip;
     public GameObject m_zoomGO;
-    public float m_ZoomRotMultiplier = 1f;
-    public float sensitivity = 10f;
+   
     public float smoothTime = 5f;
 
+    [Header("Camera Settings")]
+    public float sensitivity = 10f;
+    public float m_ZoomRotMultiplier = 1f;
+    public float pitchMaxLimit = 10f;
+    public float pitchMinLimit = -90f;
+
+    public enum ControlScheme {Simple, Advanced };
+    public ControlScheme controlScheme;
+
+    public bool isFiring;
     //Private Vars
     private float lastShootTime = 0f;
 
@@ -34,23 +43,35 @@ public class TurretController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        ZoomOut();
+        Unzoom();
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        if (Vector3.Dot(transform.up, Vector3.down) > 0)
+        if (controlScheme == ControlScheme.Simple)
         {
-            transform.Rotate(Vector3.down, sensitivity * playerInput.x * Time.deltaTime * Mathf.Rad2Deg, Space.World);
+            if (Vector3.Dot(transform.up, Vector3.down) > 0)
+            {
+                transform.Rotate(Vector3.down, sensitivity * playerInput.x * Time.deltaTime * Mathf.Rad2Deg, Space.World);
+            }
+            else
+            {
+                transform.Rotate(Vector3.up, sensitivity * playerInput.x * Time.deltaTime * Mathf.Rad2Deg, Space.World);
+            }
+
+            transform.Rotate(Vector3.left, sensitivity * playerInput.y * Time.deltaTime * Mathf.Rad2Deg, Space.Self);
+            ClampRotation();
         }
-        else
+        else if (controlScheme == ControlScheme.Advanced)
         {
-            transform.Rotate(Vector3.up, sensitivity * playerInput.x * Time.deltaTime * Mathf.Rad2Deg, Space.World);
+
+            //Control 2
+            transform.Rotate(Vector3.left, sensitivity * playerInput.y * Time.deltaTime * Mathf.Rad2Deg, Space.Self);
+            transform.Rotate(Vector3.up, sensitivity * playerInput.x * Time.deltaTime * Mathf.Rad2Deg, Space.Self);
+            ClampRotation();
         }
-        
-        transform.Rotate(Vector3.left, sensitivity * playerInput.y * Time.deltaTime * Mathf.Rad2Deg, Space.Self);
 
         if (playerInput == Vector2.zero)
         {
@@ -58,6 +79,30 @@ public class TurretController : MonoBehaviour
         } else
         {
             m_standby = false;
+        }
+
+        if (isFiring)
+        {
+            Shoot();
+        }
+    }
+
+    void ClampRotation()
+    {
+        Debug.Log(transform.eulerAngles.x + "+" + transform.eulerAngles.y);
+
+        // Clamp rot because it can get stuck
+        if (transform.eulerAngles.x > 0 && transform.eulerAngles.x < 90)
+        {
+
+            transform.localEulerAngles = new Vector3(-1f, transform.localEulerAngles.y, transform.localEulerAngles.z);
+        }
+
+        // Clamp rot because it can get stuck
+        if (transform.eulerAngles.x > 320f && transform.eulerAngles.x < 359f && Vector3.Dot(transform.up, Vector3.down) > 0)
+        {
+
+            transform.localEulerAngles = new Vector3(319f, transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
 
 
@@ -76,25 +121,49 @@ public class TurretController : MonoBehaviour
 
         Vector2 inputVector = context.ReadValue<Vector2>();
         playerInput = new Vector2(inputVector.x * zoomRotMultiplier, inputVector.y * zoomRotMultiplier);
+
         
     }
 
-    public void ZoomIn()
+    public void Zoom(InputAction.CallbackContext context)
     {
-        m_zoomGO.SetActive(true);
-        m_zoomed = true;
+
+        if (context.started)
+        {
+            m_zoomGO.SetActive(true);
+            m_zoomed = true;
+        }
+
+        if(context.canceled)
+        {
+            m_zoomGO.SetActive(false);
+            m_zoomed = false;
+        }
     }
 
-    public void ZoomOut()
+    public void Unzoom()
     {
         m_zoomGO.SetActive(false);
         m_zoomed = false;
     }
 
-
-    public void Shoot(InputAction.CallbackContext context)
+    public void ShootInput(InputAction.CallbackContext context)
     {
 
+        isFiring = context.ReadValue<float>() > 0;
+
+    }
+
+    public void ResetRotation()
+    {
+        //float resetTime = 0f;
+        //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.identity, resetTime);
+        //resetTime += Time.deltaTime;
+        transform.rotation = Quaternion.identity;
+    }
+
+    void Shoot()
+    {
         if (lastShootTime + shootDelay < Time.time)
         {
 
@@ -112,6 +181,10 @@ public class TurretController : MonoBehaviour
                 //newTrail.Clear();
                 //newTrail.AddPosition(m_FireTransform.position);
                 //newTrail.AddPosition(hit.point);
+
+                m_ShootingAudio.clip = m_FireClip;
+                m_ShootingAudio.Play();
+
                 StartCoroutine(SpawnTrail(newTrail, hit));
 
 
@@ -127,8 +200,6 @@ public class TurretController : MonoBehaviour
 
             }
         }
-        
-        
     }
 
     private Vector3 GetFireDirection()

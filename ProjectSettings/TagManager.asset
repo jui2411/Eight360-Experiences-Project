@@ -20,11 +20,11 @@ TagManager:
   - Raycasts
   - Hand
   - Movable
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Environment
+  - Launcher
+  - Projectiles
+  - Obstacles
+  - Agents
   - 
   - 
   - 

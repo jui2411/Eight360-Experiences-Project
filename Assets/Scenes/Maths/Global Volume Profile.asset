@@ -145,15 +145,15 @@ MonoBehaviour:
     m_Value: 1
   gaussianStart:
     m_OverrideState: 1
-    m_Value: 0.54
+    m_Value: 72.8
     min: 0
   gaussianEnd:
     m_OverrideState: 1
-    m_Value: 10.19
+    m_Value: 44.41
     min: 0
   gaussianMaxRadius:
     m_OverrideState: 1
-    m_Value: 0.635
+    m_Value: 1.5
     min: 0.5
     max: 1.5
   highQualitySampling:
@@ -210,11 +210,11 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0.047
+    m_Value: 0.597
     min: 0
     max: 1
   clamp:
     m_OverrideState: 1
-    m_Value: 0.05
+    m_Value: 0.094
     min: 0
     max: 0.2

@@ -6,11 +6,13 @@ using UnityEngine;
 public class StayWithinRadiusBehaviour : BoidBehaviour
 {
 
-    public Vector3 center;
+    private Vector3 center;
     public float radius = 15f;
 
     public override Vector3 calculateMove(BoidAgent agent, List<Transform> context, BoidManager boids)
     {
+
+        if (center == Vector3.zero) center = boids.transform.position;
         Vector3 centerOffset = center - agent.transform.position;
         float t = centerOffset.magnitude / radius;
 
