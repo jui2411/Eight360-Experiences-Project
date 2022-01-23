@@ -18,7 +18,24 @@ public class TurretController : MonoBehaviour
     public AudioSource m_ShootingAudio;
     public AudioClip m_FireClip;
     public GameObject m_zoomGO;
-   
+
+    //Overheating Mechanism
+    public float minHeat;
+    public float maxHeat;
+    public float decHeat;
+    public float incHeat;
+    [Range(0f,1f)]
+    public float heatingVal;
+    public float coolingTime = 3f;
+    public bool overheated = false;
+    public bool heatCheck = false;
+    public SingleAxisBar overheatingBar;
+
+    // Health
+    public float health = 1f;
+    private float currentHealth;
+    public SingleAxisBar healthBar;
+
     public float smoothTime = 5f;
 
     [Header("Camera Settings")]
@@ -44,6 +61,7 @@ public class TurretController : MonoBehaviour
     void Start()
     {
         Unzoom();
+        ResetBars();
     }
 
     // Update is called once per frame
@@ -84,12 +102,14 @@ public class TurretController : MonoBehaviour
         if (isFiring)
         {
             Shoot();
+
         }
+
+        OverheatCheck();
     }
 
     void ClampRotation()
     {
-        Debug.Log(transform.eulerAngles.x + "+" + transform.eulerAngles.y);
 
         // Clamp rot because it can get stuck
         if (transform.eulerAngles.x > 0 && transform.eulerAngles.x < 90)
@@ -162,25 +182,28 @@ public class TurretController : MonoBehaviour
         transform.rotation = Quaternion.identity;
     }
 
+
+
     void Shoot()
     {
+        // Holding/Pressing Trigger Conditions
+        StopCoroutine("HeatCooldown");
+
         if (lastShootTime + shootDelay < Time.time)
         {
 
-            if (m_muzzleFlash) m_muzzleFlash.Play();
+            
 
             RaycastHit hit;
             //Debug.Log("Fire!");
             Vector3 fireDirection = GetFireDirection();
 
-            if (Physics.Raycast(m_FireTransform.position, fireDirection, out hit, range))
+            if (Physics.Raycast(m_FireTransform.position, fireDirection, out hit, range) && !overheated)
             {
-                //Debug.Log(hit.transform.name);
+
+                if (m_muzzleFlash) m_muzzleFlash.Play();
 
                 TrailRenderer newTrail = Instantiate(m_beam, m_FireTransform.position, m_FireTransform.rotation) as TrailRenderer;
-                //newTrail.Clear();
-                //newTrail.AddPosition(m_FireTransform.position);
-                //newTrail.AddPosition(hit.point);
 
                 m_ShootingAudio.clip = m_FireClip;
                 m_ShootingAudio.Play();
@@ -188,6 +211,7 @@ public class TurretController : MonoBehaviour
                 StartCoroutine(SpawnTrail(newTrail, hit));
 
 
+                // Score System
                 Target target = hit.transform.GetComponent<Target>();
                 if (target != null)// only find target component and then take damage
                 {
@@ -195,11 +219,98 @@ public class TurretController : MonoBehaviour
                     ScoreManager.instance.AddScore();
                 }
 
+                // Overheating Mechanism
+                heatingVal += incHeat;
+                heatCheck = true;
+
+                overheatingBar.ChangePercentage(heatingVal);
+
+                // Ending Shoot Function
                 lastShootTime = Time.time;
 
 
             }
         }
+    }
+
+    void ResetBars()
+    {
+        heatingVal = 0f;
+        overheatingBar.ChangePercentage(heatingVal);
+
+        currentHealth = health;
+        healthBar.ChangePercentage(currentHealth);
+    }
+
+    void OverheatCheck()
+    {
+        //heat clamps
+        if (heatingVal >= maxHeat)
+        {
+            heatingVal = maxHeat;
+            heatCheck = true;
+            overheated = true;
+
+        }
+        else if (heatingVal <= minHeat)
+        {
+            heatingVal = minHeat;
+            heatCheck = false;
+            if (overheated) overheated = false;
+        } else
+        {
+            heatCheck = true;
+        }
+
+        //Cooldown turret
+        if (heatCheck && !isFiring)
+        {
+            StartCoroutine("HeatCooldown");
+            
+        }
+    }
+
+    IEnumerator HeatCooldown()
+    {
+        
+        if((heatingVal - decHeat) <= minHeat)
+        {
+            heatingVal = 0f;
+        } else
+        {
+            //wait for 1 sec
+            yield return new WaitForSeconds(coolingTime);
+            heatingVal -= decHeat;// decrease the value from overheat
+        }
+
+        overheatingBar.ChangePercentage(heatingVal);
+
+    }
+
+    public void TakeDamage(float _damage)
+    {
+        currentHealth -= _damage;
+        healthBar.ChangePercentage(currentHealth);
+
+        if(currentHealth <= 0f)
+        {
+            currentHealth = 0f;
+            Die();
+        }
+
+    }
+
+    [ContextMenu("HURT")]
+    public void DoDamange()
+    {
+        TakeDamage(0.1f);
+    }
+
+    void Die()
+    {
+        //Gameover
+
+
     }
 
     private Vector3 GetFireDirection()
