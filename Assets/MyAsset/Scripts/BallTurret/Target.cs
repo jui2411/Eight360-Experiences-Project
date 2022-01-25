@@ -14,6 +14,13 @@ public class Target : MonoBehaviour
     }
     void Die()
     {
+        Fracture fractureScript = GetComponent<Fracture>();
+
+        if(fractureScript != null)
+        {
+            fractureScript.FractureObject();
+        }
+
         gameObject.SetActive(false);
     }
 }

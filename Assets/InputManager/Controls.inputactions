@@ -40,6 +40,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Stabilise",
+                    "type": "Button",
+                    "id": "00805771-fcbc-4328-b847-67229a362bd0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -189,11 +198,22 @@
                 {
                     "name": "",
                     "id": "2f49db5a-cbe9-4ea6-81d1-70036de84496",
-                    "path": "<HID::Logitech Logitech Extreme 3D>/button3",
+                    "path": "<HID::Logitech Logitech Extreme 3D>/button4",
                     "interactions": "",
                     "processors": "",
                     "groups": "Joystick",
                     "action": "Reset",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "895f7066-924f-4e6d-9503-290df8f31bc9",
+                    "path": "<HID::Logitech Logitech Extreme 3D>/button3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Joystick",
+                    "action": "Stabilise",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

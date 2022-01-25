@@ -11,7 +11,7 @@ public class TurretController : MonoBehaviour
     public float shootDelay = 15f; //Fire Rate
     [Tooltip("-0.1f, 0.1f")]
     public Vector3 shootSpread;
-    public ParticleSystem m_muzzleFlash;
+    public ParticleSystem[] m_muzzleFlash;
     public ParticleSystem m_impact;
     public TrailRenderer m_beam;
     public Transform m_FireTransform;
@@ -53,20 +53,117 @@ public class TurretController : MonoBehaviour
 
     Vector2 playerInput;
 
+    public float m_resetSensitivity = 20f;
+    public float m_stabiliseSensitivity = 20f;
+
     private bool m_zoomed;
     private bool m_standby;
+    public bool m_controlPaused;
+    public bool m_isResetingRot;
+    public bool m_isStabilisingRot;
+
+    //UI
+    public GameObject StabiliserReady;
+    public GameObject StabilisingUI;
+    public GameObject ResetRotUI;
+
 
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         Unzoom();
         ResetBars();
+        ResetControl();
+        HideHUD();
     }
 
     // Update is called once per frame
     void Update()
     {
+
+
+        if(m_isResetingRot || m_isStabilisingRot)
+        {
+            playerInput = Vector2.zero;
+        }
+
+        if(m_isStabilisingRot)
+        {
+            RotateUpRight();
+        }
+
+        if(m_isResetingRot)
+        {
+            ResetRotation();
+        }
+
+        Rotate();
+
+        if (isFiring)
+        {
+            Shoot();
+
+        }
+
+
+        if(transform.localEulerAngles.z > 10f && !m_isStabilisingRot)
+        {
+            StabiliserReady.SetActive(true);
+        }
+
+        OverheatCheck();
+    }
+
+    void HideHUD()
+    {
+        StabiliserReady.SetActive(false);
+        ResetRotUI.SetActive(false);
+        StabilisingUI.SetActive(false);
+    }
+
+    void Rotate()
+    {
+
+        // If facing upwards
+        if (Vector3.Dot(transform.forward, Vector3.up) > 0.5f && Vector3.Dot(transform.forward, Vector3.up) <= 1.0f)
+        {
+            controlScheme = ControlScheme.Advanced;
+            float zAng = transform.localEulerAngles.z;
+
+            if (Vector3.Dot(transform.forward, Vector3.up) < 0.65f)
+            {
+
+                //float i = Vector3.Dot(transform.forward, Vector3.up);
+                //float max = 0.5f;
+                //float min = 0.65f;
+                //float normalizedFloat = 0f;
+
+                ////Calculate the normalized float;     
+                //normalizedFloat = (i - min) / (max - min);
+                ////Clamp the "i" float between "min" value and "max" value
+                //i = Mathf.Clamp(i, min, max);
+                ////Clamp the normalized float between 0 and 1
+                //normalizedFloat = Mathf.Clamp(normalizedFloat, 0, 1);
+
+
+                //float lerpAng = Mathf.Lerp(0, zAng, normalizedFloat);
+                //transform.rotation = Quaternion.Euler(transform.localEulerAngles.x, transform.localEulerAngles.y, lerpAng);
+            }
+
+        }
+        else
+        {
+            // Do not switch to simple mode when upside down
+            if (Vector3.Dot(transform.up, Vector3.down) < 0f)
+            {
+                
+                controlScheme = ControlScheme.Simple;
+            }
+            
+
+
+        }
 
         if (controlScheme == ControlScheme.Simple)
         {
@@ -90,22 +187,6 @@ public class TurretController : MonoBehaviour
             transform.Rotate(Vector3.up, sensitivity * playerInput.x * Time.deltaTime * Mathf.Rad2Deg, Space.Self);
             ClampRotation();
         }
-
-        if (playerInput == Vector2.zero)
-        {
-            m_standby = true;
-        } else
-        {
-            m_standby = false;
-        }
-
-        if (isFiring)
-        {
-            Shoot();
-
-        }
-
-        OverheatCheck();
     }
 
     void ClampRotation()
@@ -115,49 +196,77 @@ public class TurretController : MonoBehaviour
         if (transform.eulerAngles.x > 0 && transform.eulerAngles.x < 90)
         {
 
-            transform.localEulerAngles = new Vector3(-1f, transform.localEulerAngles.y, transform.localEulerAngles.z);
+            transform.localEulerAngles = new Vector3(-0.1f, transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
 
         // Clamp rot because it can get stuck
         if (transform.eulerAngles.x > 320f && transform.eulerAngles.x < 359f && Vector3.Dot(transform.up, Vector3.down) > 0)
         {
 
-            transform.localEulerAngles = new Vector3(319f, transform.localEulerAngles.y, transform.localEulerAngles.z);
+            transform.localEulerAngles = new Vector3(319.9f, transform.localEulerAngles.y, transform.localEulerAngles.z);
+        }
+    }
+
+    void RotateUpRight()
+    {
+        //transform.rotation = Quaternion.Euler(transform.localEulerAngles.x, transform.localEulerAngles.y, 0);
+
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(transform.localEulerAngles.x, transform.localEulerAngles.y, 0), Time.deltaTime * m_stabiliseSensitivity);
+
+        HideHUD();
+        StabilisingUI.SetActive(true);
+
+        if (transform.localEulerAngles.z < 0.05f)
+        {
+            m_isResetingRot = false;
+            m_isStabilisingRot = false;
+            m_controlPaused = false;
+            HideHUD();
         }
 
 
     }
 
-    public void BallRotation(InputAction.CallbackContext context)
+
+    public void RotateInput(InputAction.CallbackContext context)
     {
-        float zoomRotMultiplier;
-        
-        if (!m_zoomed) {
-            zoomRotMultiplier = 1;
-        } else {
 
-            zoomRotMultiplier = m_ZoomRotMultiplier;
+        if (!m_controlPaused)
+        {
+
+            float zoomRotMultiplier;
+
+            if (!m_zoomed)
+            {
+                zoomRotMultiplier = 1;
+            }
+            else
+            {
+
+                zoomRotMultiplier = m_ZoomRotMultiplier;
+            }
+
+            Vector2 inputVector = context.ReadValue<Vector2>();
+            playerInput = new Vector2(inputVector.x * zoomRotMultiplier, inputVector.y * zoomRotMultiplier);
+
         }
-
-        Vector2 inputVector = context.ReadValue<Vector2>();
-        playerInput = new Vector2(inputVector.x * zoomRotMultiplier, inputVector.y * zoomRotMultiplier);
-
-        
     }
 
     public void Zoom(InputAction.CallbackContext context)
     {
-
-        if (context.started)
+        if (!m_controlPaused)
         {
-            m_zoomGO.SetActive(true);
-            m_zoomed = true;
-        }
+            if (context.started)
+            {
+                m_zoomGO.SetActive(true);
+                m_zoomed = true;
+            }
 
-        if(context.canceled)
-        {
-            m_zoomGO.SetActive(false);
-            m_zoomed = false;
+            if (context.canceled)
+            {
+                m_zoomGO.SetActive(false);
+                m_zoomed = false;
+            }
         }
     }
 
@@ -169,22 +278,72 @@ public class TurretController : MonoBehaviour
 
     public void ShootInput(InputAction.CallbackContext context)
     {
-
-        isFiring = context.ReadValue<float>() > 0;
+        if (!m_controlPaused)
+        {
+            isFiring = context.ReadValue<float>() > 0;
+        }
 
     }
 
     public void ResetRotation()
     {
-        //float resetTime = 0f;
-        //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.identity, resetTime);
-        //resetTime += Time.deltaTime;
-        transform.rotation = Quaternion.identity;
+        // Determine which direction to rotate towards
+        //Vector3 targetDirection = target.position - transform.position;
+
+        // The step size is equal to speed times frame time.
+        float singleStep = m_resetSensitivity * Time.deltaTime;
+
+        // Rotate the forward vector towards the target direction by one step
+        Quaternion newDirection = Quaternion.RotateTowards(transform.rotation, Quaternion.identity, singleStep);
+
+        // Draw a ray pointing at our target in
+        //Debug.DrawRay(transform.position, newDirection, Color.red);
+
+        // Calculate a rotation a step closer to the target and applies rotation to this object
+        transform.rotation = newDirection;
+
+        //UI
+        HideHUD();
+        ResetRotUI.SetActive(true);
+
+        if(transform.rotation == Quaternion.identity)
+        {
+            m_isResetingRot = false;
+            m_isStabilisingRot = false;
+            m_controlPaused = false;
+            HideHUD();
+        }
     }
 
+    void ResetControl()
+    {
+        m_isResetingRot = false;
+        m_isStabilisingRot = false;
+        m_controlPaused = false;
+    }
 
+    public void ResetRotationInput(InputAction.CallbackContext context)
+    {
+        if(context.started)
+        {
+            m_controlPaused = true;
+            m_isResetingRot = true;
+            m_isStabilisingRot = false;
+        }
 
-    void Shoot()
+    }
+
+    public void StabiliseRotationInput(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            m_controlPaused = true;
+            m_isResetingRot = false;
+            m_isStabilisingRot = true;
+        }
+    }
+
+        void Shoot()
     {
         // Holding/Pressing Trigger Conditions
         StopCoroutine("HeatCooldown");
@@ -200,8 +359,10 @@ public class TurretController : MonoBehaviour
 
             if (Physics.Raycast(m_FireTransform.position, fireDirection, out hit, range) && !overheated)
             {
-
-                if (m_muzzleFlash) m_muzzleFlash.Play();
+                foreach(ParticleSystem muzzleFlash in m_muzzleFlash)
+                {
+                    muzzleFlash.Play();
+                }
 
                 TrailRenderer newTrail = Instantiate(m_beam, m_FireTransform.position, m_FireTransform.rotation) as TrailRenderer;
 
@@ -350,3 +511,4 @@ public class TurretController : MonoBehaviour
     }
 
 }
+
