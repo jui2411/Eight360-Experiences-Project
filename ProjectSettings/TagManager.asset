@@ -9,6 +9,7 @@ TagManager:
   - PlayerEyes
   - Cuttable
   - Projectile
+  - Health
   layers:
   - Default
   - TransparentFX

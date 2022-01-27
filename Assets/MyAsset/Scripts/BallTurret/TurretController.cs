@@ -2,9 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class TurretController : MonoBehaviour
 {
+    public static TurretController instance;
+
     [Header("Weapon System")]
     public float damage = 1f;
     public float range = 100f;
@@ -67,11 +70,17 @@ public class TurretController : MonoBehaviour
     public GameObject StabilisingUI;
     public GameObject ResetRotUI;
 
+    // Clamping
+    public float pitchLimit = 0f;
+    public float yawLimit = 320f;
 
+    [Header("UI")]
+    [SerializeField] Image reticle;
 
     // Start is called before the first frame update
     void Awake()
     {
+        instance = this;
         Unzoom();
         ResetBars();
         ResetControl();
@@ -192,18 +201,20 @@ public class TurretController : MonoBehaviour
     void ClampRotation()
     {
 
+
+
         // Clamp rot because it can get stuck
-        if (transform.eulerAngles.x > 0 && transform.eulerAngles.x < 90)
+        if (transform.eulerAngles.x > pitchLimit && transform.eulerAngles.x < (pitchLimit + 90))
         {
 
-            transform.localEulerAngles = new Vector3(-0.1f, transform.localEulerAngles.y, transform.localEulerAngles.z);
+            transform.localEulerAngles = new Vector3((pitchLimit - 0.1f), transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
 
         // Clamp rot because it can get stuck
-        if (transform.eulerAngles.x > 320f && transform.eulerAngles.x < 359f && Vector3.Dot(transform.up, Vector3.down) > 0)
+        if (transform.eulerAngles.x > yawLimit && transform.eulerAngles.x < 359.9f && Vector3.Dot(transform.up, Vector3.down) > 0)
         {
 
-            transform.localEulerAngles = new Vector3(319.9f, transform.localEulerAngles.y, transform.localEulerAngles.z);
+            transform.localEulerAngles = new Vector3((yawLimit - 0.1f), transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
     }
 
@@ -216,7 +227,7 @@ public class TurretController : MonoBehaviour
         HideHUD();
         StabilisingUI.SetActive(true);
 
-        if (transform.localEulerAngles.z < 0.05f)
+        if (transform.localEulerAngles.z < 0.1f)
         {
             m_isResetingRot = false;
             m_isStabilisingRot = false;
@@ -281,6 +292,8 @@ public class TurretController : MonoBehaviour
         if (!m_controlPaused)
         {
             isFiring = context.ReadValue<float>() > 0;
+            reticle.color = isFiring ? Color.red * 0.5f : Color.gray * 0.5f;
+            
         }
 
     }
@@ -367,7 +380,7 @@ public class TurretController : MonoBehaviour
                 TrailRenderer newTrail = Instantiate(m_beam, m_FireTransform.position, m_FireTransform.rotation) as TrailRenderer;
 
                 m_ShootingAudio.clip = m_FireClip;
-                m_ShootingAudio.Play();
+                if (m_ShootingAudio.isActiveAndEnabled) { m_ShootingAudio.Play(); }
 
                 StartCoroutine(SpawnTrail(newTrail, hit));
 
