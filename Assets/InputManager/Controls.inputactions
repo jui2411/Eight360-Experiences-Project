@@ -49,13 +49,22 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Start",
+                    "type": "Button",
+                    "id": "dca63aff-a9b2-4583-95f4-6e508e235a01",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
                 {
                     "name": "",
                     "id": "e592ece6-ae9d-4c0a-8e19-f12e7bbfdd85",
-                    "path": "<HID::Logitech Logitech Extreme 3D>/trigger",
+                    "path": "<Joystick>/trigger",
                     "interactions": "Press",
                     "processors": "",
                     "groups": "Joystick",
@@ -87,8 +96,19 @@
                 },
                 {
                     "name": "",
+                    "id": "4f617cef-97f4-4af3-aaca-3c8eb76229aa",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "GamePad",
+                    "action": "Shoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "7ffcffbd-684f-4289-abcd-2ad2ef640c7c",
-                    "path": "<HID::Logitech Logitech Extreme 3D>/button2",
+                    "path": "<Joystick>/trigger",
                     "interactions": "Press(behavior=2)",
                     "processors": "",
                     "groups": "Joystick",
@@ -120,8 +140,19 @@
                 },
                 {
                     "name": "",
+                    "id": "f4126624-8f99-4bf8-8f69-da7dffd4d572",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "GamePad",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "6223ad6d-7281-4870-baf7-6878496de3eb",
-                    "path": "<HID::Logitech Logitech Extreme 3D>/stick",
+                    "path": "<Joystick>/stick",
                     "interactions": "",
                     "processors": "",
                     "groups": "Joystick",
@@ -197,11 +228,33 @@
                 },
                 {
                     "name": "",
+                    "id": "75198d78-31e3-4e57-8031-2afdbbedbc52",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "InvertVector2(invertX=false)",
+                    "groups": "",
+                    "action": "Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "2f49db5a-cbe9-4ea6-81d1-70036de84496",
                     "path": "<HID::Logitech Logitech Extreme 3D>/button4",
                     "interactions": "",
                     "processors": "",
                     "groups": "Joystick",
+                    "action": "Reset",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c16d6c97-aac0-4245-9dea-1265784fffd8",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "GamePad",
                     "action": "Reset",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -216,6 +269,39 @@
                     "action": "Stabilise",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3b702e44-8fdc-448b-94ba-d62ec2cd3e7c",
+                    "path": "<Gamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "GamePad",
+                    "action": "Stabilise",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "26cd61d9-2042-4db8-838f-63038e0622d1",
+                    "path": "<Keyboard>/p",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Start",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "765ea4e0-6439-4dcf-b79c-b7d237632258",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "GamePad",
+                    "action": "Start",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
@@ -224,13 +310,7 @@
         {
             "name": "Joystick",
             "bindingGroup": "Joystick",
-            "devices": [
-                {
-                    "devicePath": "<Joystick>",
-                    "isOptional": false,
-                    "isOR": false
-                }
-            ]
+            "devices": []
         },
         {
             "name": "Keyboard",
@@ -247,6 +327,17 @@
             "name": "Mouse",
             "bindingGroup": "Mouse",
             "devices": []
+        },
+        {
+            "name": "GamePad",
+            "bindingGroup": "GamePad",
+            "devices": [
+                {
+                    "devicePath": "<Gamepad>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
         }
     ]
 }

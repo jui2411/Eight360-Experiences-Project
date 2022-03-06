@@ -6,13 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Intro Room.unity
-    guid: 8bfdea5091dd26140847a7d3d559314d
-  - enabled: 1
-    path: Assets/Scenes/Jason Room.unity
-    guid: afdcb113ffd5a4353ad88f0dd03743af
+    path: Assets/Scenes/AsteroidImpact.unity
+    guid: 45e9b2fefcdff0e468296655211db5f7
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 8fccb80e6c9a84389a75f2c1ed4d786d, type: 2}
+    Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: f6881d67651b98d4194f4ba99697e0d9, type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: 6552af51ba8c4b040824e6a0608c0957, type: 2}
+    com.unity.xr.magicleap.magic_leap_settings: {fileID: 11400000, guid: 319ae8054bb4d344db4caa514f8126d0, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: d3134b6f939114be9b8d6dbeff42d453, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 2b485d7676a7d4b3eba3a764bd60d013, type: 2}
